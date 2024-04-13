@@ -57,6 +57,23 @@ const std::map<Protocol, std::function<HeatpumpIR *()>> PROTOCOL_CONSTRUCTOR_MAP
     {PROTOCOL_ZHLT01, []() { return new ZHLT01HeatpumpIR(); }},                              // NOLINT
 };
 
+uint8_t map_fan_speed_to_heatpumpir_fan_speed(FanSpeed fan_speed) {
+  switch (fan_speed) {
+    case FanSpeed::FAN_SPEED_1:
+      return FAN_1;
+    case FanSpeed::FAN_SPEED_2:
+      return FAN_2;
+    case FanSpeed::FAN_SPEED_3:
+      return FAN_3;
+    case FanSpeed::FAN_SPEED_4:
+      return FAN_4;
+    case FanSpeed::FAN_SPEED_5:
+      return FAN_5;
+    default:
+      return FAN_1;
+  }
+}
+
 void HeatpumpIRClimate::setup() {
   auto protocol_constructor = PROTOCOL_CONSTRUCTOR_MAP.find(protocol_);
   if (protocol_constructor == PROTOCOL_CONSTRUCTOR_MAP.end()) {
@@ -144,13 +161,13 @@ void HeatpumpIRClimate::transmit_state() {
 
   switch (this->fan_mode.value_or(climate::CLIMATE_FAN_AUTO)) {
     case climate::CLIMATE_FAN_LOW:
-      fan_speed_cmd = FAN_2;
+      fan_speed_cmd = map_fan_speed_to_heatpumpir_fan_speed(fan_low_);
       break;
     case climate::CLIMATE_FAN_MEDIUM:
-      fan_speed_cmd = FAN_3;
+      fan_speed_cmd = map_fan_speed_to_heatpumpir_fan_speed(fan_medium_);
       break;
     case climate::CLIMATE_FAN_HIGH:
-      fan_speed_cmd = FAN_4;
+      fan_speed_cmd = map_fan_speed_to_heatpumpir_fan_speed(fan_high_);
       break;
     case climate::CLIMATE_FAN_AUTO:
     default:

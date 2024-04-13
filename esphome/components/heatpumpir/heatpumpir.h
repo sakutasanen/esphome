@@ -77,6 +77,14 @@ enum VerticalDirection {
   VERTICAL_DIRECTION_DOWN = 5,
 };
 
+enum FanSpeed {
+  FAN_SPEED_1 = 0,
+  FAN_SPEED_2 = 1,
+  FAN_SPEED_3 = 2,
+  FAN_SPEED_4 = 3,
+  FAN_SPEED_5 = 4,
+};
+
 // Temperature
 const float TEMP_MIN = 0;    // Celsius
 const float TEMP_MAX = 100;  // Celsius
@@ -102,6 +110,10 @@ class HeatpumpIRClimate : public climate_ir::ClimateIR {
   void set_max_temperature(float temperature) { this->max_temperature_ = temperature; }
   void set_min_temperature(float temperature) { this->min_temperature_ = temperature; }
 
+  void set_fan_low(FanSpeed fan_low) { this->fan_low_ = fan_low; }
+  void set_fan_medium(FanSpeed fan_medium) { this->fan_medium_ = fan_medium; }
+  void set_fan_high(FanSpeed fan_high) { this->fan_high_ = fan_high; }
+
  protected:
   HeatpumpIR *heatpump_ir_;
   /// Transmit via IR the state of this climate controller.
@@ -112,6 +124,10 @@ class HeatpumpIRClimate : public climate_ir::ClimateIR {
 
   float max_temperature_;
   float min_temperature_;
+
+  FanSpeed fan_low_;
+  FanSpeed fan_medium_;
+  FanSpeed fan_high_;
 };
 
 }  // namespace heatpumpir

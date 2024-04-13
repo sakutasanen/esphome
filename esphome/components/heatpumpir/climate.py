@@ -85,6 +85,22 @@ VERTICAL_DIRECTIONS = {
     "down": VerticalDirections.VERTICAL_DIRECTION_DOWN,
 }
 
+CONF_SETFANSPEEDS = "set_fan_speeds"
+CONF_FAN_LOW = "fan_low"
+CONF_FAN_MEDIUM = "fan_medium"
+CONF_FAN_HIGH = "fan_high"
+
+FanSpeeds = heatpumpir_ns.enum("FanSpeeds")
+FANSPEEDS = {
+    "fan1": FanSpeeds.FAN_SPEED_1,
+    "fan2": FanSpeeds.FAN_SPEED_2,
+    "fan3": FanSpeeds.FAN_SPEED_3,
+    "fan4": FanSpeeds.FAN_SPEED_4,
+    "fan5": FanSpeeds.FAN_SPEED_5,
+    # TODO: Silent?
+    # TODO: High power?
+}
+
 CONFIG_SCHEMA = cv.All(
     climate_ir.CLIMATE_IR_WITH_RECEIVER_SCHEMA.extend(
         {
@@ -94,6 +110,22 @@ CONFIG_SCHEMA = cv.All(
             cv.Required(CONF_VERTICAL_DEFAULT): cv.enum(VERTICAL_DIRECTIONS),
             cv.Required(CONF_MIN_TEMPERATURE): cv.temperature,
             cv.Required(CONF_MAX_TEMPERATURE): cv.temperature,
+            cv.Optional(
+                CONF_SETFANSPEEDS,
+                default={
+                    CONF_FAN_LOW: "fan2",
+                    CONF_FAN_MEDIUM: "fan3",
+                    CONF_FAN_HIGH: "fan4",
+                },
+            ): cv.All(
+                cv.Schema(
+                    {
+                        cv.Required(CONF_FAN_LOW): cv.enum(FANSPEEDS),
+                        cv.Required(CONF_FAN_MEDIUM): cv.enum(FANSPEEDS),
+                        cv.Required(CONF_FAN_HIGH): cv.enum(FANSPEEDS),
+                    }
+                ),
+            ),
         }
     ),
     cv.only_with_arduino,
@@ -109,12 +141,19 @@ def to_code(config):
         visual[CONF_MAX_TEMPERATURE] = config[CONF_MAX_TEMPERATURE]
     if CONF_MIN_TEMPERATURE not in visual:
         visual[CONF_MIN_TEMPERATURE] = config[CONF_MIN_TEMPERATURE]
+    if CONF_SETFANSPEEDS not in visual:
+        visual[CONF_SETFANSPEEDS] = config[CONF_SETFANSPEEDS]
     yield climate_ir.register_climate_ir(var, config)
     cg.add(var.set_protocol(config[CONF_PROTOCOL]))
     cg.add(var.set_horizontal_default(config[CONF_HORIZONTAL_DEFAULT]))
     cg.add(var.set_vertical_default(config[CONF_VERTICAL_DEFAULT]))
     cg.add(var.set_max_temperature(config[CONF_MAX_TEMPERATURE]))
     cg.add(var.set_min_temperature(config[CONF_MIN_TEMPERATURE]))
+
+    fan = config[CONF_SETFANSPEEDS]
+    cg.add(var.set_fan_low(fan[CONF_FAN_LOW]))
+    cg.add(var.set_fan_medium(fan[CONF_FAN_MEDIUM]))
+    cg.add(var.set_fan_high(fan[CONF_FAN_HIGH]))
 
     cg.add_library("tonia/HeatpumpIR", "1.0.23")
 
